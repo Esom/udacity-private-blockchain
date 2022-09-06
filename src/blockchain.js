@@ -69,6 +69,13 @@ class Blockchain {
      * that this method is a private method.
      */
     _addBlock(block) {
+        let chainErrorFound = false;
+
+        // Checks for chain validity
+        this.validateChain().then(errors => {
+            errors.length ? chainErrorFound = true : chainErrorFound = false;
+        });
+
         return new Promise(async (resolve, reject) => {
             let height = this.chain.length;
             let maxHashLength = 64;
@@ -81,9 +88,11 @@ class Blockchain {
         })
         .catch(error => console.log('Error ', error))
         .then(block => {
-            this.chain.push(block);
-            this.height = this.chain.length - 1;
-            return block;
+            if (!chainErrorFound) {
+                this.chain.push(block);
+                this.height = this.chain.length - 1;
+                return block;
+            }
         });
     }
 
@@ -128,7 +137,7 @@ class Blockchain {
             const targetTime = 5 * 60;
 
             // Check if elapsed time is less than 5 minutes
-            if (elapsedTime >= targetTime) reject(new Error('Time has elapsed'));
+            if (elapsedTime > targetTime) reject(new Error('Time has elapsed'));
 
             // Verify message
             if (!bitcoinMessage.verify(message, address, signature)) reject(new Error('Message is invalid'))
@@ -151,7 +160,9 @@ class Blockchain {
     getBlockByHash(hash) {
         let self = this;
         return new Promise((resolve, reject) => {
-
+            const isBlockFound = this.chain.find((block) => hash === block.hash);
+            if (!isBlockFound) reject(new Error('Block not found with specified hash: ' + hash));
+            resolve(isBlockFound);
         });
     }
 
@@ -218,7 +229,6 @@ class Blockchain {
             resolve(errorLog);
         });
     }
-
 }
 
 module.exports.Blockchain = Blockchain;
