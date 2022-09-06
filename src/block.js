@@ -36,18 +36,17 @@ class Block {
      *  Note: to access the class values inside a Promise code you need to create an auxiliary value `let self = this;`
      */
     validate() {
-        let self = this;
         return new Promise(async (resolve, reject) => {
             // Save in auxiliary variable the current block hash
-            let currentHash = self.hash;
+            let currentHash = this.hash;
 
             // Recalculate the hash of the Block
-            self.hash = await SHA256(JSON.stringify({ ...currentHash, hash: null })).toString();
+            this.hash = await SHA256(JSON.stringify({ ...this, hash: null })).toString();
 
             // Comparing if the hashes changed
             // Returning the Block is not valid
             // Returning the Block is valid
-            resolve (currentHash == self.hash);
+            resolve (currentHash == this.hash);
         });
     }
 
@@ -63,10 +62,10 @@ class Block {
     getBData() {
         return new Promise((resolve, reject) => {
             if (!this.previousBlockHash) resolve(null);
-            const encoded = this.body;
-            const decoded = hex2ascii(encoded)
-            const obj = JSON.parse(decoded);
-            resolve(obj);
+            const encodedData = this.body;
+            const decodedData = hex2ascii(encodedData);
+            const object = JSON.parse(decodedData);
+            resolve(object);
         });
     }
 
